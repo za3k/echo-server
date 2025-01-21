@@ -68,7 +68,7 @@ int client(char* path) {
             // Read from network
             set_nonblock(sock_address->fd);
             bytes = read(sock_address->fd, buf, sizeof(buf));
-            if (bytes == -1) { // Does not always close immediately when the server hangs up the unix socket. This is a bug.
+            if (bytes <= 0) {
                 fprintf(stderr, "[client] server closed connection\n");
                 return 0;
             }
