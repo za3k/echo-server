@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/select.h>
+#include <sys/time.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -53,38 +54,24 @@ int client(char* path) {
         fprintf(stderr, "[client] Failed to connect to Path=%s. Err=%s\n", sock_address->addr.sun_path, strerror(errno));
         return 1;
     }
-
-    while (1) {
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-        FD_SET(sock_address->fd, &read_fds);
-        retval = select(sock_address->fd+1, &read_fds, 0, 0, 0);
-        if (retval <= 0) {
-            fprintf(stderr, "[client] select() problem\n");
-            return 1;
-        }
-
-        if (FD_ISSET(sock_address->fd, &read_fds)) {
-            // Read from network
-            set_nonblock(sock_address->fd);
-            bytes = read(sock_address->fd, buf, sizeof(buf));
-            if (bytes <= 0) {
-                fprintf(stderr, "[client] server closed connection\n");
-                return 0;
-            }
-            set_block(sock_address->fd);
-            // Write to standard output
-            write(STDOUT_FILENO, buf, bytes);
-        }
-        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-            // Read from standard input
-            bytes = read(STDIN_FILENO, buf, sizeof(buf)); // TODO: Handle \004, C-d
-            if (bytes == -1) return EXIT_SUCCESS;
-            // Write to network
-            if (-1 == write(sock_address->fd, buf, bytes)) {
-                fprintf(stderr, "[client] server closed connection\n");
-                return 0;
-            }
+    
+    bytes = 1;
+    buf[0] = 'a';
+    struct timeval tv1, tv2, tv_result;
+    
+    gettimeofday(&tv1, 0);
+    long i;
+    for (i=0; i<100000; i++) {
+        write(sock_address->fd, buf, bytes);
+        bytes = read(sock_address->fd, buf, sizeof(buf));
+        if (bytes <= 0) {
+            fprintf(stderr, "[client] server closed connection\n");
+            break;
         }
     }
+    gettimeofday(&tv2, 0);
+
+    timersub(&tv2, &tv1, &tv_result);
+    printf("Iterations: %ld\n", i);
+    printf("Total time: %ld.%06ld\n", (long int)tv_result.tv_sec, (long int)tv_result.tv_usec);
 }
