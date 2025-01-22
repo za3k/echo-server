@@ -16,4 +16,4 @@ int set_nonblock(int fd);
 int client(char *path);
 
 // server.c
-int server(char *path);
+int server(char *path, long delay_ms);

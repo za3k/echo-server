@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "ed_common.h" 
 
@@ -25,12 +26,15 @@ int main(int argc, char **argv) {
     #define CLIENT 1
     #define SERVER 2
     int type = 0;
+    int delay = 0;
 
     for (int an=1; an<argc; an++) {
         if (strcmp("-c", argv[an]) == 0) {
             type = CLIENT;
         } else if (strcmp("-s", argv[an]) == 0) {
             type = SERVER;
+        } else {
+            delay = atoi(argv[an]);
         }
     }
 
@@ -44,6 +48,11 @@ int main(int argc, char **argv) {
     if (type == CLIENT) {
         return client(path);
     } else if (type == SERVER) {
-        return server(path);
+        if (fork()) {
+            return server(path, delay);
+        } else {
+            sleep(0.1);
+            return client(path);
+        }
     }
 }

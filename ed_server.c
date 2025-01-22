@@ -21,8 +21,15 @@ void remove_client(int *client_fds, int *clients, int removed) {
     (*clients)--;
 }
 
+void wait(long long delay_us) {
+    struct timeval tv;
+    tv.tv_usec = delay_us % 1000000;
+    tv.tv_sec = delay_us / 1000000;
+    select(0, 0, 0, 0, &tv);
+}
 
-int server(char *path) {
+
+int server(char *path, long delay) {
     fprintf(stderr, "[server] Starting with Path=%s\n", path);
 
     int client_fds[10];
@@ -95,6 +102,7 @@ int server(char *path) {
                     remove_client(client_fds, &clients, fdi);
                     continue;
                 }
+                wait(delay);
                 // Write to network, all clients (including sender)
                 for (int toi=0; toi<clients; toi++) {
                     int success = write(client_fds[toi], buf, bytes);
