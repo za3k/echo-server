@@ -25,7 +25,7 @@ void handler(int sig) {
 int main(int argc, char **argv) {
     #define CLIENT 1
     #define SERVER 2
-    int type = 0;
+    int type = SERVER;
     int delay = 0;
 
     for (int an=1; an<argc; an++) {
