@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     }
 
     if (type == 0) {
-        fprintf(stderr, USAGE);
+        fprintf(stderr, "%s", USAGE);
         exit(-1);
     }
 
